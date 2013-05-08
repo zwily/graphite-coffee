@@ -45,3 +45,20 @@ describe 'GraphiteUrl', ->
     url = g.render()
 
     expect(url).toBe('http://example.com/?&target=alias(sumSeries(series1,series2),\'my sum\')')
+
+  it 'correctly stringifies integer arguments', ->
+    g.target ->
+      g.movingAverage g.s('series'), 50
+
+    url = g.render()
+
+    expect(url).toBe('http://example.com/?&target=movingAverage(series,50)')
+
+  it 'correctly relocates integer arguments', ->
+    g.target ->
+      g.movingAverage 50, ->
+        g.sumSeries g.s('series1'), g.s('series2')
+
+    url = g.render()
+
+    expect(url).toBe('http://example.com/?&target=movingAverage(sumSeries(series1,series2),50)')

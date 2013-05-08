@@ -40,7 +40,7 @@ describe('GraphiteUrl', function() {
     url = g.render();
     return expect(url).toBe('http://example.com/?&target=alias(series,\'my series\')');
   });
-  return it('relocates seriesLists to the front that are embedded in other calls', function() {
+  it('relocates seriesLists to the front that are embedded in other calls', function() {
     var url;
     g.target(function() {
       return g.alias("my sum", function() {
@@ -49,5 +49,23 @@ describe('GraphiteUrl', function() {
     });
     url = g.render();
     return expect(url).toBe('http://example.com/?&target=alias(sumSeries(series1,series2),\'my sum\')');
+  });
+  it('correctly stringifies integer arguments', function() {
+    var url;
+    g.target(function() {
+      return g.movingAverage(g.s('series'), 50);
+    });
+    url = g.render();
+    return expect(url).toBe('http://example.com/?&target=movingAverage(series,50)');
+  });
+  return it('correctly relocates integer arguments', function() {
+    var url;
+    g.target(function() {
+      return g.movingAverage(50, function() {
+        return g.sumSeries(g.s('series1'), g.s('series2'));
+      });
+    });
+    url = g.render();
+    return expect(url).toBe('http://example.com/?&target=movingAverage(sumSeries(series1,series2),50)');
   });
 });
