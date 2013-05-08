@@ -25,11 +25,10 @@ _capacity =
  
 g.target ->
   g.cactiStyle ->
-    g.alias ->
+    g.alias 'overprovisioning %', ->
       g.divideSeries ->
         g.diffSeries _capacity, _load
       , _capacity
-    , 'overprovisioning %'
  
 url = g.render()
 ```

@@ -21,11 +21,27 @@ describe 'GraphiteUrl', ->
     expect(url).toBe('http://example.com/?&target=sumSeries(series1,series2)')
 
   it 'stringifies string arguments', ->
-    g = new GraphiteUrl "http://example.com/"
-
     g.target ->
       g.alias g.s('series'), 'my series'
 
     url = g.render()
 
     expect(url).toBe('http://example.com/?&target=alias(series,\'my series\')')
+
+  it 'relocates serieslists to the front of arguments', ->
+    g.target ->
+      g.alias "my series", ->
+        g.s('series')
+
+    url = g.render()
+
+    expect(url).toBe('http://example.com/?&target=alias(series,\'my series\')')
+
+  it 'relocates seriesLists to the front that are embedded in other calls', ->
+    g.target ->
+      g.alias "my sum", ->
+        g.sumSeries g.s('series1'), g.s('series2')
+
+    url = g.render()
+
+    expect(url).toBe('http://example.com/?&target=alias(sumSeries(series1,series2),\'my sum\')')

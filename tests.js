@@ -22,13 +22,32 @@ describe('GraphiteUrl', function() {
     url = g.render();
     return expect(url).toBe('http://example.com/?&target=sumSeries(series1,series2)');
   });
-  return it('stringifies string arguments', function() {
+  it('stringifies string arguments', function() {
     var url;
-    g = new GraphiteUrl("http://example.com/");
     g.target(function() {
       return g.alias(g.s('series'), 'my series');
     });
     url = g.render();
     return expect(url).toBe('http://example.com/?&target=alias(series,\'my series\')');
+  });
+  it('relocates serieslists to the front of arguments', function() {
+    var url;
+    g.target(function() {
+      return g.alias("my series", function() {
+        return g.s('series');
+      });
+    });
+    url = g.render();
+    return expect(url).toBe('http://example.com/?&target=alias(series,\'my series\')');
+  });
+  return it('relocates seriesLists to the front that are embedded in other calls', function() {
+    var url;
+    g.target(function() {
+      return g.alias("my sum", function() {
+        return g.sumSeries(g.s('series1'), g.s('series2'));
+      });
+    });
+    url = g.render();
+    return expect(url).toBe('http://example.com/?&target=alias(sumSeries(series1,series2),\'my sum\')');
   });
 });

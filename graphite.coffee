@@ -14,6 +14,9 @@ class GraphiteUrl
   # Series list strings must be wrapped in a call to s(), so that they can
   # be distinguished from normal strings which get wrapped in quotes.
   s: (string) ->
+    GraphiteUrl.s(string)
+
+  @s: (string) ->
     s = new String(string)
     s.seriesList = true
     s
@@ -35,15 +38,27 @@ class GraphiteUrl
       _resolve_arg arg(), result
     else if arg.seriesList == true
       result.push arg
-    else
+    else if (arg instanceof String) or typeof(arg) == "string"
       # TODO: escape any quotes in arg
       result.push "'#{arg}'"
+    else
+      result.push arg
 
   @func: (name, args...) ->
-    flattened_args = []
+    flattenedArgs = []
     for a in args
-      _resolve_arg a, flattened_args
-    "#{name}(#{flattened_args.join(',')})"
+      _resolve_arg a, flattenedArgs
+
+    # move all seriesList args to the front of the args array
+    seriesLists = []
+    otherArgs = []
+    for a in flattenedArgs
+      if a.seriesList == true
+        seriesLists.push a
+      else
+        otherArgs.push a
+
+    @s("#{name}(#{seriesLists.concat(otherArgs).join(',')})")
 
   # Add graphite functions to the prototype. Some function args must
   # be delivered as strings to graphite, so we also annotate which ones

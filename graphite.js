@@ -25,6 +25,10 @@ GraphiteUrl = (function() {
   };
 
   GraphiteUrl.prototype.s = function(string) {
+    return GraphiteUrl.s(string);
+  };
+
+  GraphiteUrl.s = function(string) {
     var s;
     s = new String(string);
     s.seriesList = true;
@@ -67,20 +71,32 @@ GraphiteUrl = (function() {
       return _resolve_arg(arg(), result);
     } else if (arg.seriesList === true) {
       return result.push(arg);
-    } else {
+    } else if ((arg instanceof String) || typeof arg === "string") {
       return result.push("'" + arg + "'");
+    } else {
+      return result.push(arg);
     }
   };
 
   GraphiteUrl.func = function() {
-    var a, args, flattened_args, name, _i, _len;
+    var a, args, flattenedArgs, name, otherArgs, seriesLists, _i, _j, _len, _len1;
     name = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
-    flattened_args = [];
+    flattenedArgs = [];
     for (_i = 0, _len = args.length; _i < _len; _i++) {
       a = args[_i];
-      _resolve_arg(a, flattened_args);
+      _resolve_arg(a, flattenedArgs);
     }
-    return "" + name + "(" + (flattened_args.join(',')) + ")";
+    seriesLists = [];
+    otherArgs = [];
+    for (_j = 0, _len1 = flattenedArgs.length; _j < _len1; _j++) {
+      a = flattenedArgs[_j];
+      if (a.seriesList === true) {
+        seriesLists.push(a);
+      } else {
+        otherArgs.push(a);
+      }
+    }
+    return this.s("" + name + "(" + (seriesLists.concat(otherArgs).join(',')) + ")");
   };
 
   functions = ['alias', 'aliasByNode', 'aliasSub', 'alpha', 'areaBetween', 'asPercent', 'averageAbove', 'averageBelow', 'averageSeries', 'averageSeriesWithWildcards', 'cactiStyle', 'color', 'constantLine', 'cumulative', 'currentAbove', 'currentBelow', 'dashed', 'derivative', 'diffSeries', 'divideSeries', 'drawAsInfinite', 'events', 'exclude', 'groupByNode', 'highestAverage', 'highestCurrent', 'highestMax', 'hitcount', 'holtWintersAberration', 'holtWintersConfidenceBands', 'holtWintersForecast', 'integral', 'keepLastValue', 'legendValue', 'limit', 'lineWidth', 'logarithm', 'lowestAverage', 'lowestCurrent', 'maxSeries', 'maximumAbove', 'maximumBelow', 'minSeries', 'minimumAbove', 'mostDeviant', 'movingAverage', 'movingMedian', 'multiplySeries', 'nPercentile', 'nonNegativeDerivative', 'offset', 'randomWalkFunction', 'rangeOfSeries', 'removeAbovePercentile', 'removeAboveValue', 'removeBelowPercentile', 'removeBelowValue', 'scale', 'secondYAxis', 'sinFunction', 'smartSummarize', 'sortByMaxima', 'sortByMinima', 'stacked', 'stdev', 'substr', 'sumSeries', 'sumSeriesWithWildcards', 'summarize', 'threshold', 'timeFunction', 'timeShift'];
