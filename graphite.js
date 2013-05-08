@@ -3,7 +3,7 @@ var GraphiteUrl,
   __slice = [].slice;
 
 GraphiteUrl = (function() {
-  var fname, functions, resolve_arg, _fn, _i, _len;
+  var fname, functions, _fn, _i, _len, _resolve_arg;
 
   GraphiteUrl.name = 'GraphiteUrl';
 
@@ -22,12 +22,6 @@ GraphiteUrl = (function() {
 
   GraphiteUrl.prototype.target = function(target) {
     return this.targets.push(typeof target === "function" ? target() : target);
-  };
-
-  GraphiteUrl.prototype.f = function() {
-    var args, info, name;
-    name = arguments[0], info = arguments[1], args = 3 <= arguments.length ? __slice.call(arguments, 2) : [];
-    return GraphiteUrl.func.apply(GraphiteUrl, [name, info].concat(__slice.call(args)));
   };
 
   GraphiteUrl.prototype.s = function(string) {
@@ -60,17 +54,17 @@ GraphiteUrl = (function() {
     }).call(this)).join('&');
   };
 
-  resolve_arg = function(arg, result) {
+  _resolve_arg = function(arg, result) {
     var a, _i, _len, _results;
     if (arg instanceof Array) {
       _results = [];
       for (_i = 0, _len = arg.length; _i < _len; _i++) {
         a = arg[_i];
-        _results.push(resolve_arg(a, result));
+        _results.push(_resolve_arg(a, result));
       }
       return _results;
     } else if (typeof arg === "function") {
-      return resolve_arg(arg(), result);
+      return _resolve_arg(arg(), result);
     } else if (arg.seriesList === true) {
       return result.push(arg);
     } else {
@@ -84,7 +78,7 @@ GraphiteUrl = (function() {
     flattened_args = [];
     for (_i = 0, _len = args.length; _i < _len; _i++) {
       a = args[_i];
-      resolve_arg(a, flattened_args);
+      _resolve_arg(a, flattened_args);
     }
     return "" + name + "(" + (flattened_args.join(',')) + ")";
   };

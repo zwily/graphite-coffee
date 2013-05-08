@@ -7,28 +7,32 @@ class GraphiteUrl
   attr: (k, v) ->
     @attrs[k] = v
 
+  # Add a target to your graph
   target: (target) ->
     @targets.push if typeof(target) == "function" then target() else target
 
-  f: (name, info, args...) -> GraphiteUrl.func(name, info, args...)
-
+  # Series list strings must be wrapped in a call to s(), so that they can
+  # be distinguished from normal strings which get wrapped in quotes.
   s: (string) ->
     s = new String(string)
     s.seriesList = true
     s
 
+  # Returns the URL for the graph
   render: ->
     @base + '?' +
       ("#{k}=#{v}" for k, v of @attrs).join('&') + '&' +
       ("target=#{t}" for t in @targets).join('&')
 
+
+
   # go through args, flattening arrays and executing funcs along the way
-  resolve_arg = (arg, result) ->
+  _resolve_arg = (arg, result) ->
     if arg instanceof Array
       for a in arg
-        resolve_arg a, result
+        _resolve_arg a, result
     else if typeof(arg) == "function"
-      resolve_arg arg(), result
+      _resolve_arg arg(), result
     else if arg.seriesList == true
       result.push arg
     else
@@ -38,7 +42,7 @@ class GraphiteUrl
   @func: (name, args...) ->
     flattened_args = []
     for a in args
-      resolve_arg a, flattened_args
+      _resolve_arg a, flattened_args
     "#{name}(#{flattened_args.join(',')})"
 
   # Add graphite functions to the prototype. Some function args must
