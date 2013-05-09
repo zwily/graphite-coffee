@@ -35,7 +35,7 @@ url = g.render()
 
 ## Usage
 
-Initialize and instance of GraphiteUrl with the URL to your graphite
+Initialize an instance of GraphiteUrl with the URL to your graphite
 installation. You can also pass some URL options:
 
 ```coffee
