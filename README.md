@@ -33,4 +33,87 @@ g.target ->
 url = g.render()
 ```
 
+## Usage
 
+Initialize and instance of GraphiteUrl with the URL to your graphite
+installation. You can also pass some URL options:
+
+```coffee
+g = new GraphiteUrl "http://graphite.example.com/render/",
+  title: "My Graphite Graph"
+```
+
+Add or change attributes with `attr`:
+
+```coffee
+g.attr 'width', 600
+g.attr 'height', 300
+```
+
+Add a new target, or line on your graph, with `target`:
+
+```coffee
+g.target g.s('path.to.series.blah')
+```
+
+SeriesLists (like `path.to.series.blah` above) must be wrapped in `s`.
+
+Apply Graphite functions to your data:
+
+```coffee
+g.target ->
+  g.dashed -> # makes this series a dashed line
+    g.sumSeries g.s('series1'), g.s('series2')
+```
+
+For functions that take non-SeriesLists arguments, any SeriesLists
+provided will be pulled to the front of the argument list. What that
+means is that these two examples both work, the second (hopefully) being
+more readable:
+
+```coffee
+g.target ->
+  g.alias ->
+    g.lineWidth ->
+      g.sumSeries ->
+        [ g.s('series1'), s.g('series2') ]
+    , 2
+  , 'Summed Series'
+
+g.target ->
+  g.alias 'Summed Series', ->
+    g.lineWidth 2, ->
+      g.sumSeries ->
+        [ g.s('series1'), g.s('series2') ]
+```
+
+Reuse composed SeriesLists to DRY things up:
+
+```coffee
+_load =
+  g.sumSeries ->
+    (g.multiplySeries(g.s("clusters.app_cluster.#{c}.cpu"), g.s("clusters.app_cluster.#{c}.instances")) for c in [1..10])
+ 
+_capacity =
+  g.sumSeries g.s("clusters.app_cluster.*.instances")
+ 
+g.target ->
+  g.cactiStyle ->
+    g.alias 'overprovisioning %', ->
+      g.divideSeries ->
+        g.diffSeries _capacity, _load
+      , _capacity
+ 
+```
+
+When you're done adding your targets, render the url with `render`:
+
+```coffee
+url = g.render()
+```
+
+### Will it work in JavaScript?
+
+Sure, but the intention was to create a pseudo-DSL for describing
+Graphite graphs, and I think you lose some of that with all the
+parentheses and `function`s that will be everywhere.
