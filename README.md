@@ -112,6 +112,8 @@ When you're done adding your targets, render the url with `render`:
 url = g.render()
 ```
 
+## Questions
+
 ### Will it work in JavaScript?
 
 Sure, but the intention was to create a pseudo-DSL for describing
