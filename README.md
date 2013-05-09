@@ -66,6 +66,9 @@ g.target ->
     g.sumSeries g.s('series1'), g.s('series2')
 ```
 
+(Read about all available functions
+[here](http://graphite.readthedocs.org/en/1.0/functions.html).)
+
 For functions that take non-SeriesLists arguments, any SeriesLists
 provided will be pulled to the front of the argument list. What that
 means is that these two examples both work, the second (hopefully) being
