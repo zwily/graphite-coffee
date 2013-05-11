@@ -24,12 +24,10 @@ _capacity =
   g.sumSeries g.s("clusters.app_cluster.*.instances")
  
 g.target ->
-  g.cactiStyle ->
-    g.alias 'overprovisioning %', ->
-      g.divideSeries ->
-        g.diffSeries _capacity, _load
-      , _capacity
- 
+  g.divideSeries(g.diffSeries(_capacity, _load), _capacity)
+  .alias('overprovisioning %')
+  .cactiStyle()
+
 url = g.render()
 ```
 
@@ -56,7 +54,7 @@ Add a new target, or line on your graph, with `target`:
 g.target g.s('path.to.series.blah')
 ```
 
-SeriesLists (like `path.to.series.blah` above) must be wrapped in `s`.
+Series (like `path.to.series.blah` above) must be wrapped in `s`.
 
 Apply Graphite functions to your data:
 
@@ -69,10 +67,28 @@ g.target ->
 (Read about all available functions
 [here](http://graphite.readthedocs.org/en/1.0/functions.html).)
 
-For functions that take non-SeriesLists arguments, any SeriesLists
-provided will be pulled to the front of the argument list. What that
-means is that these two examples both work, the second (hopefully) being
-more readable:
+In addition to the functional style used above, you can also call
+Graphite functions as methods on Series objects. When you make a method
+call on a Series, that Series will be the first argument to the Graphite
+function, and the arguments passed to the method will be the rest.
+
+These two examples are equivalent:
+
+```coffee
+g.target ->
+  g.dashed ->
+    g.alias ->
+      g.sumSeries(g.s('series*'))
+    , 'My Series'
+
+g.target ->
+  g.sumSeries(g.s('series*')).alias('My Series').dashed()
+```
+
+For functions that take non-Series arguments, any Series provided will
+be pulled to the front of the argument list. What that means is that
+these two examples both work, the second (hopefully) being more
+readable:
 
 ```coffee
 g.target ->
@@ -90,7 +106,7 @@ g.target ->
         [ g.s('series1'), g.s('series2') ]
 ```
 
-Reuse composed SeriesLists to DRY things up:
+Reuse composed Series to DRY things up:
 
 ```coffee
 _load =

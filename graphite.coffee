@@ -1,4 +1,14 @@
-class GraphiteUrl
+class Graphite
+  class Series
+    constructor: (args) ->
+      @series = args
+
+    toString: () ->
+      @series
+
+    @func: (name, instance, args...) ->
+      Graphite.func(name, [ instance ].concat(args))
+
   constructor: (base, attrs = {}) ->
     @base = base
     @attrs = attrs
@@ -14,19 +24,16 @@ class GraphiteUrl
   # Series list strings must be wrapped in a call to s(), so that they can
   # be distinguished from normal strings which get wrapped in quotes.
   s: (string) ->
-    GraphiteUrl.s(string)
+    Graphite.s(string)
 
-  @s: (string) ->
-    s = new String(string)
-    s.seriesList = true
-    s
+  @s: (series...) ->
+    new Series(series...)
 
   # Returns the URL for the graph
   render: ->
     @base + '?' +
       ("#{k}=#{v}" for k, v of @attrs).join('&') + '&' +
       ("target=#{t}" for t in @targets).join('&')
-
 
 
   # go through args, flattening arrays and executing funcs along the way
@@ -36,7 +43,7 @@ class GraphiteUrl
         _resolve_arg a, result
     else if typeof(arg) == "function"
       _resolve_arg arg(), result
-    else if arg.seriesList == true
+    else if arg instanceof Series
       result.push arg
     else if (arg instanceof String) or typeof(arg) == "string"
       # TODO: escape any quotes in arg
@@ -53,7 +60,7 @@ class GraphiteUrl
     seriesLists = []
     otherArgs = []
     for a in flattenedArgs
-      if a.seriesList == true
+      if a instanceof Series
         seriesLists.push a
       else
         otherArgs.push a
@@ -139,5 +146,7 @@ class GraphiteUrl
   ]
   for fname in functions
     do (fname) ->
-      GraphiteUrl::[fname] = (args...) -> 
-        GraphiteUrl.func(fname, args...)
+      Graphite::[fname] = (args...) ->
+        Graphite.func(fname, args...)
+      Series::[fname] = (args...) ->
+        Series.func(fname, this, args...)

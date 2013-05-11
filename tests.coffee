@@ -1,8 +1,8 @@
-describe 'GraphiteUrl', ->
+describe 'Graphite', ->
   g = null
 
   beforeEach ->
-    g = new GraphiteUrl "http://example.com/"
+    g = new Graphite "http://example.com/"
 
   it 'renders a url', ->
     g.target ->
@@ -63,8 +63,26 @@ describe 'GraphiteUrl', ->
 
     expect(url).toBe('http://example.com/?&target=movingAverage(sumSeries(series1,series2),50)')
 
+  it 'handles simple method-style calls', ->
+    g.target ->
+      g.s('series').alias("my series")
+
+    url = g.render()
+
+    expect(url).toBe('http://example.com/?&target=alias(series,\'my series\')')
+
+  it 'handles multiple method-style calls', ->
+    g.target ->
+      g.divideSeries(g.diffSeries(g.s('series1'), g.s('series2')), g.s('series'))
+      .alias('some ratio')
+      .cactiStyle()
+
+    url = g.render()
+
+    expect(url).toBe('http://example.com/?&target=cactiStyle(alias(divideSeries(diffSeries(series1,series2),series),\'some ratio\'))')
+
   it 'should render the example from README.md', ->
-    g =  new GraphiteUrl "https://graphite.example.com/render/",
+    g =  new Graphite "https://graphite.example.com/render/",
       title: 'Cluster Overprovisioning'
       width: 1000
       from: '-1day'
@@ -84,11 +102,9 @@ describe 'GraphiteUrl', ->
       g.sumSeries g.s("clusters.app_cluster.*.instances")
 
     g.target ->
-      g.cactiStyle ->
-        g.alias 'overprovisioning %', ->
-          g.divideSeries ->
-            g.diffSeries _capacity, _load
-          , _capacity
+      g.divideSeries(g.diffSeries(_capacity, _load), _capacity)
+      .alias('overprovisioning %')
+      .cactiStyle()
 
     url = g.render()
 
